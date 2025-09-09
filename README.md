@@ -24,7 +24,7 @@ repository for creating scripts for the prizmatix led control software
     * You can navigate forward with 'cd', and list files in your current directory with 'dir'. Further, you can navigate back with 'cd..'. (do not include the apostrophes for any of these) 
     * Go to your download location, click the bar at the top that says something like > This PC > SSD, etc. This selects your full path. Then press ctrl-C to copy the full directory path.
     ![Download Path at Top of File Explorer](images/copyDirectory.png)
-    * In the command prompt, type: cd 'D:\GitHub Projects\LED-Controller-Software\images'
+    * In the command prompt, type the following: cd D:\GitHub Projects\LED-Controller-Software (replace with your path you just copied)
     * A NOTE: if you are currently in C drive, and need to navigate to D drive (as an example) - simply type D: and you will move to the other drive
     ![cd path/to/download](images/cd-path.png)
 9) Run the test 
