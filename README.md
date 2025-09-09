@@ -27,5 +27,5 @@ repository for creating scripts for the prizmatix led control software
     * In the command prompt, type the following: cd D:\GitHub Projects\LED-Controller-Software (replace with your path you just copied)
     * A NOTE: if you are currently in C drive, and need to navigate to D drive (as an example) - simply type D: and you will move to the other drive
     ![cd path/to/download](images/cd-path.png)
-9) Run the test 
+9) Run the test using the following command: python led_gui.py
 
