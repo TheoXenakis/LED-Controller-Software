@@ -8,6 +8,7 @@ repository for creating scripts for the prizmatix led control software
 ## Getting Started:
 1) Install Python 3.6 or higher from https://www.python.org/downloads/
 2) Install the 'pyserial' library by running 'pip install pyserial' in your command line
+        ![Command Prompt > pip install pyserial + results](images/pip-install-pyserial.png)
 3) Connect your Prizmatix LED Controller to your computer via USB
 4) Open Device Manager (Windows) or System Information (Mac) to find the COM port
         ![Device Manager > Ports (COM &LPT) > usbname(COM1), usbname(COM2)...](images/device-manager-com-ss.png)
