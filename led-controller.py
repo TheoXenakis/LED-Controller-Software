@@ -9,6 +9,8 @@ import serial.tools.list_ports
 import time
 import threading
 
+cancel_flag = threading.Event()
+
 "****************************************************************************"
 "+---------------------------- led-controller.py ---------------------------+"
 "****************************************************************************"
@@ -78,6 +80,7 @@ def turn_off():
 
 def start_timer():
     def run_timer():
+        cancel_flag.clear()
         #get the hours, minuts, seconds, cycles & calculate the interval
         try:
             hours = int(hours_val.get())
@@ -101,11 +104,29 @@ def start_timer():
         try:
             ser = serial.Serial(port=com_port, baudrate=9600, timeout=1)
             for cycle in range(cycles):
+
+
+                #CHECK IF THE TIMER WAS CANCELLED
+                if (cancel_flag.is_set()):
+                    print("Timer cancelled.")
+                    ser.close()
+                    root.after(0, lambda: messagebox.showinfo("Timer", "Timer cancelled."))
+                    return
+
+                #Turn on the timer, and run for alloted time
                 ser.write(b'H')
                 print(f"Cycle {cycle+1}/{cycles}: LED ON")
                 root.after(0, root.update)
                 time.sleep(interval)
 
+                #CHECK IF THE TIMER WAS CANCELLED
+                if (cancel_flag.is_set()):
+                    print("Timer cancelled.")
+                    ser.close()
+                    root.after(0, lambda: messagebox.showinfo("Timer", "Timer cancelled."))
+                    return
+
+                #Turn off the timer once the time has passed
                 ser.write(b'L')
                 print(f"Cycle {cycle+1}/{cycles}: LED OFF")
                 root.update()
@@ -115,9 +136,13 @@ def start_timer():
             root.after(0, lambda: messagebox.showinfo("Timer", f"Completed {cycles} ON/OFF cycles at {interval}s each."))
         except Exception as e:
             root.after(0, lambda: messagebox.showerror("Error", f"Timer failed\n\n{e}"))
+
+    #Call the run_timer function when this thread starts - ensures that the GUI is responsive during running the timer
     threading.Thread(target=run_timer, daemon=True).start()
 
-    
+def cancel_timer():
+    cancel_flag.set()
+
 
 "+------------------ GUI SETUP ------------------+"
 #Create the main window
@@ -157,7 +182,6 @@ on_button.pack(pady=5) #pads 5 pixels vertically
 off_button = tk.Button(root, text="Turn LED OFF", command=turn_off)
 off_button.pack(pady=5) #pads 5 pixels vertically
 
-
 #Interval Dropdowns
 interval_frame = tk.Frame(root)
 interval_frame.pack()
@@ -192,5 +216,9 @@ cycles_menu.pack()
 #Button to start the timer
 timer_button = tk.Button(root, text="Start Timer", command=start_timer)
 timer_button.pack(pady=5)
+
+#Button to cancel the timer
+cancel_button = tk.Button(root, text="Cancel Timer", command=cancel_timer)
+cancel_button.pack(pady=5)
 
 root.mainloop() #start the GUI event loop
