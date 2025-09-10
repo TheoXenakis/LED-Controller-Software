@@ -7,7 +7,12 @@ from tkinter import messagebox
 import serial #pip install pyserial 
 import serial.tools.list_ports
 
+"****************************************************************************"
 "+---------------------------- led-controller.py ---------------------------+"
+"****************************************************************************"
+
+"+---------- Testing Communication and Port Management ----------+"
+
 def test_connection():
     com_port = selected_port.get()
     print(f"Testing connection to {com_port}...")  # debug print
@@ -41,6 +46,33 @@ def refresh_ports():
         messagebox.showwarning("Warning", "No COM ports found. Please connect your device.")
         print("WARNING - No COM ports found. Please connect your device.")
 
+"+---------- LED Control Functions ----------+"
+
+def turn_on():
+    com_port = selected_port.get()
+    try:
+        ser = serial.Serial(port=com_port, baudrate=9600, timeout=1)
+        ser.write(b'H')  # Send 'ON' command to the device
+        ser.close()
+        print("LED turned ON")
+        messagebox.showinfo("Success", "LED turned ON")
+    except Exception as e:
+        print(f"ERROR - Could not send ON command: {e}")
+        messagebox.showerror("Error", f"Failed to turn ON LED\n\n{e}")
+
+def turn_off():
+    com_port = selected_port.get()
+    try:
+        ser = serial.Serial(port=com_port, baudrate=9600, timeout=1)
+        ser.write(b'L')  # Send 'OFF' command to the device
+        ser.close()
+        print("LED turned OFF")
+        messagebox.showinfo("Success", "LED turned OFF")
+    except Exception as e:
+        print(f"ERROR - Could not send OFF command: {e}")
+        messagebox.showerror("Error", f"Failed to turn OFF LED\n\n{e}")
+
+"+------------------ GUI SETUP ------------------+"
 #Create the main window
 root = tk.Tk()
 root.title("Prizmatix LED Controller")
@@ -69,5 +101,13 @@ test_button.pack(pady=20) #pads 20 pixels vertically
 #Button to refresh the list of COM ports
 refresh_button = tk.Button(root, text="Refresh Ports", command=refresh_ports)
 refresh_button.pack(pady=5) #pads 5 pixels vertically
+
+#Button to turn LED ON
+on_button = tk.Button(root, text="Turn LED ON", command=turn_on)
+on_button.pack(pady=5) #pads 5 pixels vertically
+
+#Button to turn LED OFF
+off_button = tk.Button(root, text="Turn LED OFF", command=turn_off)
+off_button.pack(pady=5) #pads 5 pixels vertically
 
 root.mainloop() #start the GUI event loop

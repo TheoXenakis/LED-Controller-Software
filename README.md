@@ -7,6 +7,8 @@ repository for creating scripts for the prizmatix led control software
 
 ## Getting Started:
 
+### NOTE: TEMPORARY SETUP INSTRUCTIONS WHILE TESTING ON/OFF INPUTS WITH DEVICE
+
 ### If you have never used python before, this is for you!
 1) Install Python 3.6 or higher from https://www.python.org/downloads/
 2) Install the 'pyserial' library by running 'pip install pyserial' in your command line
