@@ -7,6 +7,7 @@ from tkinter import messagebox
 import serial #pip install pyserial 
 import serial.tools.list_ports
 import time
+import threading
 
 "****************************************************************************"
 "+---------------------------- led-controller.py ---------------------------+"
@@ -76,31 +77,47 @@ def turn_off():
         messagebox.showerror("Error", f"Failed to turn OFF LED\n\n{e}")
 
 def start_timer():
-    try:
-        interval = int(interval_entry.get())
-        cycles = int(cycles_entry.get())
-        print(f"Starting timer for {interval} seconds...")
-    except ValueError:
-        messagebox.showerror("Error", "Please enter a valid number for the timer.")
-        return
-    
-    com_port = selected_port.get()
-    try:
-        ser = serial.Serial(port=com_port, baudrate=9600, timeout=1)
-        for cycle in range(cycles):
-            ser.write(b'H')
-            print(f"Cycle {cycle+1}/{cycles}: LED ON")
-            root.update()
-            time.sleep(interval)
+    def run_timer():
+        #get the hours, minuts, seconds, cycles & calculate the interval
+        try:
+            hours = int(hours_val.get())
+            minutes = int(minutes_val.get())
+            seconds = int(seconds_val.get())
+            interval = (hours * 3600) + (minutes * 60) + seconds
+            cycles = int(cycles_val.get())
 
-            ser.write(b'L')
-            print(f"Cycle {cycle+1}/{cycles}: LED OFF")
-            root.update()
-            time.sleep(interval)
-        ser.close()
-        messagebox.showinfo("Timer", f"Completed {cycles} ON/OFF cycles at {interval}s each.")
-    except Exception as e:
-        messagebox.showerror("Error", f"Timer failed\n\n{e}")
+            #verify valid inputs
+            if interval <= 0 or cycles <= 0:
+                raise ValueError
+        
+        #Handle invalid values
+        except ValueError:
+            root.after(0, lambda:messagebox.showerror("Error", "Please enter a valid number for the timer."))
+            return
+        
+
+        #Get the COM port and run for the selected time
+        com_port = selected_port.get()
+        try:
+            ser = serial.Serial(port=com_port, baudrate=9600, timeout=1)
+            for cycle in range(cycles):
+                ser.write(b'H')
+                print(f"Cycle {cycle+1}/{cycles}: LED ON")
+                root.after(0, root.update)
+                time.sleep(interval)
+
+                ser.write(b'L')
+                print(f"Cycle {cycle+1}/{cycles}: LED OFF")
+                root.update()
+                if (cycles < cycles - 1):
+                    time.sleep(interval)
+            ser.close()
+            root.after(0, lambda: messagebox.showinfo("Timer", f"Completed {cycles} ON/OFF cycles at {interval}s each."))
+        except Exception as e:
+            root.after(0, lambda: messagebox.showerror("Error", f"Timer failed\n\n{e}"))
+    threading.Thread(target=run_timer, daemon=True).start()
+
+    
 
 "+------------------ GUI SETUP ------------------+"
 #Create the main window
@@ -140,17 +157,37 @@ on_button.pack(pady=5) #pads 5 pixels vertically
 off_button = tk.Button(root, text="Turn LED OFF", command=turn_off)
 off_button.pack(pady=5) #pads 5 pixels vertically
 
-#Entry to set the interval
-interval_label = tk.Label(root, text="Interval(seconds)")
-interval_label.pack()
-interval_entry = tk.Entry(root, width=10)
-interval_entry.pack()
 
-#Entry to set the number of cycles
-cycles_label = tk.Label(root, text="Number of cycles:")
+#Interval Dropdowns
+interval_frame = tk.Frame(root)
+interval_frame.pack()
+
+interval_label = tk.Label(interval_frame, text="Run For:")
+interval_label.grid(row=0, column=0, padx=5)
+
+#sub-dropdowns for hours, minutes, seconds
+hours_val = tk.StringVar(value="0")
+minutes_val = tk.StringVar(value="0")
+seconds_val = tk.StringVar(value="1")
+
+hours_menu = tk.OptionMenu(interval_frame, hours_val, *[str(i) for i in range(0, 24)])
+hours_menu.grid(row=0, column=1)
+tk.Label(interval_frame, text="h").grid(row=0, column=2)
+
+minutes_menu = tk.OptionMenu(interval_frame, minutes_val, *[str(i) for i in range(0, 60)])
+minutes_menu.grid(row=0, column=3)
+tk.Label(interval_frame, text="m").grid(row=0, column=4)
+
+seconds_menu = tk.OptionMenu(interval_frame, seconds_val, *[str(i) for i in range(0, 60)])
+seconds_menu.grid(row=0, column=5)
+tk.Label(interval_frame, text="s").grid(row=0, column=6)
+
+#Cycles Dropdown
+cycles_label = tk.Label(root, text="Number of Cycles to Run:")
 cycles_label.pack()
-cycles_entry = tk.Entry(root, width=10)
-cycles_entry.pack()
+cycles_val = tk.StringVar(value="1")
+cycles_menu = tk.OptionMenu(root, cycles_val, *[str(i) for i in range(1, 101)])
+cycles_menu.pack()
 
 #Button to start the timer
 timer_button = tk.Button(root, text="Start Timer", command=start_timer)
