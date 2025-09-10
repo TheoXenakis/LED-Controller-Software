@@ -6,6 +6,7 @@ import tkinter as tk #built-in package, no extra installation needed
 from tkinter import messagebox
 import serial #pip install pyserial 
 import serial.tools.list_ports
+import time
 
 "****************************************************************************"
 "+---------------------------- led-controller.py ---------------------------+"
@@ -72,11 +73,38 @@ def turn_off():
         print(f"ERROR - Could not send OFF command: {e}")
         messagebox.showerror("Error", f"Failed to turn OFF LED\n\n{e}")
 
+def start_timer():
+    try:
+        interval = int(interval_entry.get())
+        cycles = int(cycles_entry.get())
+        print(f"Starting timer for {interval} seconds...")
+    except ValueError:
+        messagebox.showerror("Error", "Please enter a valid number for the timer.")
+        return
+    
+    com_port = selected_port.get()
+    try:
+        ser = serial.Serial(port=com_port, baudrate=9600, timeout=1)
+        for cycle in range(cycles):
+            ser.write(b'H')
+            print(f"Cycle {cycle+1}/{cycles}: LED ON")
+            root.update()
+            time.sleep(interval)
+
+            ser.write(b'L')
+            print(f"Cycle {cycle+1}/{cycles}: LED OFF")
+            root.update()
+            time.sleep(interval)
+        ser.close()
+        messagebox.showinfo("Timer", f"Completed {cycles} ON/OFF cycles at {interval}s each.")
+    except Exception as e:
+        messagebox.showerror("Error", f"Timer failed\n\n{e}")
+
 "+------------------ GUI SETUP ------------------+"
 #Create the main window
 root = tk.Tk()
 root.title("Prizmatix LED Controller")
-root.geometry("300x150")
+root.geometry("450x300") #width x height
 
 #Create the label and entry for COM port
 com_port_label = tk.Label(root, text="Select COM Port:")
@@ -109,5 +137,21 @@ on_button.pack(pady=5) #pads 5 pixels vertically
 #Button to turn LED OFF
 off_button = tk.Button(root, text="Turn LED OFF", command=turn_off)
 off_button.pack(pady=5) #pads 5 pixels vertically
+
+#Entry to set the interval
+interval_label = tk.Label(root, text="Interval(seconds)")
+interval_label.pack()
+interval_entry = tk.Entry(root, width=10)
+interval_entry.pack()
+
+#Entry to set the number of cycles
+cycles_label = tk.Label(root, text="Number of cycles:")
+cycles_label.pack()
+cycles_entry = tk.Entry(root, width=10)
+cycles_entry.pack()
+
+#Button to start the timer
+timer_button = tk.Button(root, text="Start Timer", command=start_timer)
+timer_button.pack(pady=5)
 
 root.mainloop() #start the GUI event loop
