@@ -150,6 +150,7 @@ def start_timer():
 def cancel_timer():
     cancel_flag.set()
 
+
 "+------------------ GUI SETUP ------------------+"
 #Create the main window
 root = tk.Tk()
