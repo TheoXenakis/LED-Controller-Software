@@ -8,14 +8,18 @@ import serial #pip install pyserial
 
 "+---------------------------- led-controller.py ---------------------------+"
 def test_connection():
-    com_port = com_port_entry.get().strip() #get the COM port from the entry field, remove extra spaces
+    com_port = com_entry.get().strip()
+    print(f"Testing connection to {com_port}...")  # debug print
+
     try:
-        #try to open the serial conenction
-        ser = serial.Serial(port=com_port, baudrate=9600, timeout=1) #change speed if expecting 57600 baud
-        ser.close() #immediately close the connection after the test
-        messagebox.showinfo("Connection Test", f"Successfully connected to {com_port}")
+        ser = serial.Serial(port=com_port, baudrate=9600, timeout=1)
+        ser.close()
+        print("SUCCESS - Serial opened and closed")
+        messagebox.showinfo("Success", f"Connected successfully to {com_port}")
     except Exception as e:
-        messagebox.showerror("Connection Test", f"Failed to connect to {com_port}\nError: {e}")
+        print(f"ERROR - Could not open {com_port}: {e}")
+        messagebox.showerror("Error", f"Failed to connect to {com_port}\n\n{e}")
+
 
 #Create the main window
 root = tk.Tk()
