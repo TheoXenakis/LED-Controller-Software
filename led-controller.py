@@ -53,7 +53,8 @@ def turn_on():
     com_port = selected_port.get()
     try:
         ser = serial.Serial(port=com_port, baudrate=9600, timeout=1)
-        ser.write(b'H')  # Send 'ON' command to the device
+        ser.write(b'H')  # OPTION 1: Send 'ON' command to the device via 'H' command
+        #ser.write(b'ON) # OPTION 2: Send 'ON' command to the device via 'ON' command (UNCOMMENT IF NEEDED)
         ser.close()
         print("LED turned ON")
         messagebox.showinfo("Success", "LED turned ON")
@@ -65,7 +66,8 @@ def turn_off():
     com_port = selected_port.get()
     try:
         ser = serial.Serial(port=com_port, baudrate=9600, timeout=1)
-        ser.write(b'L')  # Send 'OFF' command to the device
+        ser.write(b'L')  # OPTION 1: Send 'OFF' command to the device via the 'L' command
+        #ser.write(b'OFF) # OPTION 1: Send 'OFF' command to the device via 'OFF' command (UNCOMMENT IF NEEDED)
         ser.close()
         print("LED turned OFF")
         messagebox.showinfo("Success", "LED turned OFF")
