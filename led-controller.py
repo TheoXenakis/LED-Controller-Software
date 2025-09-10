@@ -81,68 +81,74 @@ def turn_off():
 def start_timer():
     def run_timer():
         cancel_flag.clear()
-        #get the hours, minuts, seconds, cycles & calculate the interval
         try:
             hours = int(hours_val.get())
             minutes = int(minutes_val.get())
             seconds = int(seconds_val.get())
             interval = (hours * 3600) + (minutes * 60) + seconds
             cycles = int(cycles_val.get())
-
-            #verify valid inputs
             if interval <= 0 or cycles <= 0:
                 raise ValueError
-        
-        #Handle invalid values
         except ValueError:
             root.after(0, lambda:messagebox.showerror("Error", "Please enter a valid number for the timer."))
             return
-        
 
-        #Get the COM port and run for the selected time
         com_port = selected_port.get()
         try:
             ser = serial.Serial(port=com_port, baudrate=9600, timeout=1)
             for cycle in range(cycles):
-
-
-                #CHECK IF THE TIMER WAS CANCELLED
-                if (cancel_flag.is_set()):
+                if cancel_flag.is_set():
                     print("Timer cancelled.")
                     ser.close()
                     root.after(0, lambda: messagebox.showinfo("Timer", "Timer cancelled."))
                     return
 
-                #Turn on the timer, and run for alloted time
                 ser.write(b'H')
                 print(f"Cycle {cycle+1}/{cycles}: LED ON")
                 root.after(0, root.update)
-                time.sleep(interval)
 
-                #CHECK IF THE TIMER WAS CANCELLED
-                if (cancel_flag.is_set()):
+                # Sleep in small increments for ON interval
+                sleep_time = 0
+                while sleep_time < interval:
+                    if cancel_flag.is_set():
+                        print("Timer cancelled during ON interval.")
+                        ser.close()
+                        root.after(0, lambda: messagebox.showinfo("Timer", "Timer cancelled."))
+                        return
+                    time.sleep(0.1)
+                    sleep_time += 0.1
+
+                if cancel_flag.is_set():
                     print("Timer cancelled.")
                     ser.close()
                     root.after(0, lambda: messagebox.showinfo("Timer", "Timer cancelled."))
                     return
 
-                #Turn off the timer once the time has passed
                 ser.write(b'L')
                 print(f"Cycle {cycle+1}/{cycles}: LED OFF")
                 root.update()
-                if (cycles < cycles - 1):
-                    time.sleep(interval)
+
+                # Sleep in small increments for OFF interval (except after last cycle)
+                if cycle < cycles - 1:
+                    sleep_time = 0
+                    while sleep_time < interval:
+                        if cancel_flag.is_set():
+                            print("Timer cancelled during OFF interval.")
+                            ser.close()
+                            root.after(0, lambda: messagebox.showinfo("Timer", "Timer cancelled."))
+                            return
+                        time.sleep(0.1)
+                        sleep_time += 0.1
+
             ser.close()
             root.after(0, lambda: messagebox.showinfo("Timer", f"Completed {cycles} ON/OFF cycles at {interval}s each."))
         except Exception as e:
             root.after(0, lambda: messagebox.showerror("Error", f"Timer failed\n\n{e}"))
 
-    #Call the run_timer function when this thread starts - ensures that the GUI is responsive during running the timer
     threading.Thread(target=run_timer, daemon=True).start()
 
 def cancel_timer():
     cancel_flag.set()
-
 
 "+------------------ GUI SETUP ------------------+"
 #Create the main window
